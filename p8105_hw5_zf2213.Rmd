@@ -1,0 +1,23 @@
+---
+title: "P8105 Homework 5"
+author: 'Zanis Fang, UID: ZF2213'
+date: "11/1/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(purrr)
+
+```
+
+```{r}
+tibble(groups = list.files("./data", full.names = TRUE)) %>%
+	mutate(data = map(.x = groups, .f = ~read_csv(.x))) %>% 
+	unnest()
+
+
+```
+
+
