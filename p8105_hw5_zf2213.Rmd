@@ -8,7 +8,6 @@ output: html_document
 ```{r setup, include=FALSE, message = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
-library(purrr)
 
 ```
 
@@ -42,7 +41,66 @@ tibble(id = list.files("./data", full.names = TRUE)) %>%
 
 Experimental group increase over time and control group remains unchanged overtime.
 
+## Problem 2
+
+Data tidying:
+
+```{r problem2_tidying}
+
+# read data from github repo
+homicide_raw <- read_csv("https://raw.githubusercontent.com/washingtonpost/data-homicides/master/homicide-data.csv") %>% 
+	# create city_state variable
+	unite(col = "city_state", city:state, sep = ", ", remove = FALSE)
+
+```
+
+Get number of homicides:
+
+```{r unsolved_homicides}
+unsolved_homicide <- homicide_raw %>% 
+	# get city total first
+	group_by(city_state) %>% 
+	mutate(city_total = n()) %>% 
+	# then get boolean about whether solved
+	group_by(solved = disposition %in% c("Closed by arrest"),
+					 # also keep the two variables
+					 city_state, city_total) %>%
+	# get subtotal
+	summarize(subtotal = n()) %>% 
+	# get only unsolved
+	filter(solved == FALSE)
+	
+```
+
+Baltimore, MD
+
 ```{r}
+# get data from Baltimore, MD
+baltimore_homicide <- unsolved_homicide %>% filter(city_state == "Baltimore, MD")
+broom::tidy(
+	prop.test(
+		baltimore_homicide$subtotal,
+		baltimore_homicide$city_total)
+	)
+
+# statistics for proportion test
+proptest_homicide <- unsolved_homicide %>% 
+	nest(city_state, city_total:subtotal) %>%
+	mutate(prop_test = map(.x = data,
+												 function(x) {
+												 	broom::tidy(prop.test(x$subtotal, x$city_total))
+												 	})) %>% 
+	unnest() %>% 
+	select(city_state, estimate, conf.low, conf.high)
+
+# plot
+proptest_homicide %>%
+	ggplot(aes(x = reorder(city_state, estimate), y = estimate)) +
+	  geom_point() +
+	  geom_errorbar(aes(ymin = conf.low, ymax = conf.high))
+	
+
+	
 
 ```
 
