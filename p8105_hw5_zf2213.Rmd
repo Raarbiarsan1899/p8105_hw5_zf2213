@@ -5,19 +5,46 @@ date: "11/1/2018"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, message = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(purrr)
 
 ```
 
-```{r}
-tibble(groups = list.files("./data", full.names = TRUE)) %>%
-	mutate(data = map(.x = groups, .f = ~read_csv(.x))) %>% 
-	unnest()
+## Problem 1
 
+```{r spaghetti_plot, message = FALSE}
+# read file name
+tibble(id = list.files("./data", full.names = TRUE)) %>%
+	# read tables and nest into dataframe
+	mutate(data = map(.x = id, .f = ~read_csv(.x))) %>% 
+	# unnest
+	unnest() %>% 
+	# get the sample identifier and group type
+  mutate(id = str_extract(id, "(con|exp)_\\d{2}"),
+  			 group_type = str_extract(id, "con|exp")) %>%
+	# tidy the dataset
+	gather(key = "week", value = "values", "week_1":"week_8") %>% 
+	# make week numeric
+	mutate(week = as.numeric(str_extract(week, "[1-8]"))) %>% 
+	ggplot(aes(x = week, y = values, group = id, color = group_type)) +
+	  geom_line() + 
+	  geom_point() +
+	  labs(
+	  	x = "Week",
+	  	y = "Values",
+	  	color = "Group"
+	  ) +
+	  scale_x_continuous(breaks = c(1:8))
 
 ```
+
+Experimental group increase over time and control group remains unchanged overtime.
+
+```{r}
+
+```
+
 
 
