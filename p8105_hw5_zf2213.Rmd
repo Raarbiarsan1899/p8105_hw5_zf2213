@@ -81,7 +81,7 @@ broom::tidy(
 	prop.test(
 		baltimore_homicide$subtotal,
 		baltimore_homicide$city_total)
-	)
+	) %>% knitr::kable(format.args = list(scientific = TRUE))
 
 # statistics for proportion test
 proptest_homicide <- unsolved_homicide %>%
