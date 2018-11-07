@@ -68,7 +68,7 @@ unsolved_homicide <- homicide_raw %>%
 	# get subtotal
 	summarize(subtotal = n()) %>% 
 	# get only unsolved
-	filter(solved == FALSE)
+	filter(solved == FALSE) %>% ungroup()
 	
 ```
 
@@ -84,13 +84,12 @@ broom::tidy(
 	)
 
 # statistics for proportion test
-proptest_homicide <- unsolved_homicide %>% 
-	nest(city_state, city_total:subtotal) %>%
-	mutate(prop_test = map(.x = data,
-												 function(x) {
-												 	broom::tidy(prop.test(x$subtotal, x$city_total))
-												 	})) %>% 
-	unnest() %>% 
+proptest_homicide <- unsolved_homicide %>%
+	# nest(city_state, city_total:subtotal) %>%
+	mutate(prop_test = map2(.x = subtotal, .y = city_total,
+													~broom::tidy(prop.test(.x, .y))
+												 	)) %>%
+	unnest() %>%
 	select(city_state, estimate, conf.low, conf.high)
 
 # plot

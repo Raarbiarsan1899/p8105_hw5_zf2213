@@ -374,7 +374,7 @@ homicide_raw &lt;- read_csv(&quot;https://raw.githubusercontent.com/washingtonpo
     # get subtotal
     summarize(subtotal = n()) %&gt;% 
     # get only unsolved
-    filter(solved == FALSE)</code></pre>
+    filter(solved == FALSE) %&gt;% ungroup()</code></pre>
 <p>Baltimore, MD</p>
 <pre class="r"><code># get data from Baltimore, MD
 baltimore_homicide &lt;- unsolved_homicide %&gt;% filter(city_state == &quot;Baltimore, MD&quot;)
@@ -389,13 +389,12 @@ broom::tidy(
 ## 1    0.646      239. 6.46e-54         1    0.628     0.663 1-sam…
 ## # ... with 1 more variable: alternative &lt;chr&gt;</code></pre>
 <pre class="r"><code># statistics for proportion test
-proptest_homicide &lt;- unsolved_homicide %&gt;% 
-    nest(city_state, city_total:subtotal) %&gt;%
-    mutate(prop_test = map(.x = data,
-                                                 function(x) {
-                                                    broom::tidy(prop.test(x$subtotal, x$city_total))
-                                                    })) %&gt;% 
-    unnest() %&gt;% 
+proptest_homicide &lt;- unsolved_homicide %&gt;%
+    # nest(city_state, city_total:subtotal) %&gt;%
+    mutate(prop_test = map2(.x = subtotal, .y = city_total,
+                                                    ~broom::tidy(prop.test(.x, .y))
+                                                    )) %&gt;%
+    unnest() %&gt;%
     select(city_state, estimate, conf.low, conf.high)
 
 # plot
