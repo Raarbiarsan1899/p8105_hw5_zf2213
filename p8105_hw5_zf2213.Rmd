@@ -6,7 +6,13 @@ output: github_document
 ---
 
 ```{r setup, include=FALSE, message = FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+
+knitr::opts_chunk$set(
+	echo = TRUE,
+	fig.width = 8,
+	fig.asp = .618
+)	
+
 library(tidyverse)
 
 ```
@@ -22,7 +28,11 @@ tibble(id = list.files("./data", full.names = TRUE)) %>%
 	unnest() %>% 
 	# get the sample identifier and group type
   mutate(id = str_extract(id, "(con|exp)_\\d{2}"),
-  			 group_type = str_extract(id, "con|exp")) %>%
+  			 group_type = str_extract(id, "con|exp"),
+  			 group_type = fct_recode(group_type,
+  			 												"Control" = "con",
+  			 												"Experiment"  = "exp")
+  			 ) %>%
 	# tidy the dataset
 	gather(key = "week", value = "values", "week_1":"week_8") %>% 
 	# make week numeric
@@ -33,9 +43,12 @@ tibble(id = list.files("./data", full.names = TRUE)) %>%
 	  labs(
 	  	x = "Week",
 	  	y = "Values",
-	  	color = "Group"
+	  	color = "Group",
+	  	title = "A Longitudinal Study"
 	  ) +
-	  scale_x_continuous(breaks = c(1:8))
+	  scale_x_continuous(breaks = c(1:8)) +
+	  theme(legend.position = "bottom")
+    
 
 ```
 
@@ -72,16 +85,20 @@ unsolved_homicide <- homicide_raw %>%
 	
 ```
 
-Baltimore, MD
+Baltimore, MD:
 
-```{r}
+```{r test_baltimore}
 # get data from Baltimore, MD
 baltimore_homicide <- unsolved_homicide %>% filter(city_state == "Baltimore, MD")
+# make prop.test results in a table
 broom::tidy(
+	# proportion test
 	prop.test(
+		# unsolved...
 		baltimore_homicide$subtotal,
+		# ...among all cases
 		baltimore_homicide$city_total)
-	) %>% knitr::kable(format.args = list(scientific = TRUE))
+	)
 
 # statistics for proportion test
 proptest_homicide <- unsolved_homicide %>%
