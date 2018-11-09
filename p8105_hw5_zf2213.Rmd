@@ -69,6 +69,8 @@ homicide_raw <- read_csv("https://raw.githubusercontent.com/washingtonpost/data-
 
 ```
 
+There are `dim(homicide_raw)[1]` rows, `dim(homicide_raw)[2]` columns. Each row describes a case with case ID, reported date, victim's first and last name, race, age, sex, city, state, location, disposition. 
+
 Get number of homicides:
 
 ```{r unsolved_homicides}
